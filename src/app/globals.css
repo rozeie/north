@@ -1,0 +1,617 @@
+@import "tailwindcss";
+
+/* ==========================================================================
+   North 디자인 토큰
+   기준 자료: shadcn/ui Figma(.fig) 추출 결과(handoff zip).
+   표기:
+     [FIG] 파일에서 직접 확인한 값 (노드 ID는 docs/figma-mapping.md)
+     [ADP] North 브랜드에 맞게 바꾼 값 (파일 값은 주석에 병기)
+     [INF] 파일에 없어 추론/보완한 동작·값
+   새 화면은 아래 토큰과 컴포넌트 클래스(.btn .field .card .badge .alert .dialog .nav-link ...)만
+   사용한다. 임의의 px/rem 값이나 hex 색을 페이지에 직접 쓰지 않는다.
+   ========================================================================== */
+
+:root {
+  /* color — semantic. 역할/이름은 [FIG] mode 컬렉션, 색상값은 North 에디토리얼 톤 [ADP]
+     (FIG light: background #fff, foreground #0a0a0a, primary #171717, secondary/accent/muted #f5f5f5,
+      muted-foreground #737373, border/input #e5e5e5, ring #737373, destructive #dc2626) */
+  --background: #faf9f6;
+  --foreground: #1d1c1a;
+  --card: #ffffff;
+  --card-foreground: #1d1c1a;
+  --popover: #ffffff;
+  --popover-foreground: #1d1c1a;
+  --primary: #1d1c1a;
+  --primary-foreground: #fafafa;
+  --secondary: #f1eee7; /* FIG 에서 secondary = accent = muted 가 모두 동일값. hover 표면으로도 사용 */
+  --secondary-foreground: #1d1c1a;
+  --muted: #f1eee7;
+  --muted-foreground: #6a665e;
+  --faint-foreground: #98948b;
+  --border: #e6e2d9;
+  --input: #cfcac0;
+  --ring: #2b4a5c;
+  --destructive: #dc2626; /* [FIG] */
+  --destructive-soft: #f8ebe8;
+  --success: #3f6046;
+  --success-soft: #e8f0e8;
+
+  /* North 브랜드 포인트: shadcn 의 accent(hover 표면)와 구분하기 위해 brand 로 분리 [ADP] */
+  --brand: #2b4a5c;
+  --brand-soft: #e7eef2;
+
+  /* 자료 유형 (채도 낮은 3색) [North 고유] */
+  --concept: #2f5470;
+  --concept-soft: #e8eff4;
+  --case: #7a5a1f;
+  --case-soft: #f4eddd;
+  --evidence: #3f6046;
+  --evidence-soft: #e8f0e8;
+
+  /* radius [FIG mode 컬렉션]: radius=8, xs=2, sm=6, md=8, lg=10, xl=14, 2xl=18, full=9999
+     tw 컬렉션의 rounded-md=6 과 mode 의 radius-md=8 은 별개 토큰 → 여기서는 mode 쪽을 사용 */
+  --radius: 0.5rem;
+
+  /* control height [FIG Button: small 32 / default 36 / large 40, icon 36] */
+  --control-sm: 2rem;
+  --control: 2.25rem;
+  --control-lg: 2.5rem;
+
+  /* 레이아웃 [North] */
+  --page-max: 48rem;
+  --page-gutter: 1.25rem;
+}
+
+@theme {
+  /* shadow [FIG]: shadow-xs = 0 1px 2px #000/10% (Input, outline Button),
+     dialog = 0 4px 6px -4px + 0 10px 15px -3px (#000/10%) */
+  --shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-destructive: var(--destructive);
+  --color-destructive-soft: var(--destructive-soft);
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+  --color-brand: var(--brand);
+  --color-brand-soft: var(--brand-soft);
+
+  --color-concept: var(--concept);
+  --color-concept-soft: var(--concept-soft);
+  --color-case: var(--case);
+  --color-case-soft: var(--case-soft);
+  --color-evidence: var(--evidence);
+  --color-evidence-soft: var(--evidence-soft);
+
+  /* 기존 클래스 호환 별칭 (신규 코드는 위 시맨틱 이름 사용) */
+  --color-paper: var(--background);
+  --color-surface: var(--card);
+  --color-ink: var(--foreground);
+  --color-muted: var(--muted-foreground);
+  --color-faint: var(--faint-foreground);
+  --color-line: var(--border);
+  --color-line-strong: var(--input);
+  --color-accent: var(--brand);
+  --color-accent-soft: var(--brand-soft);
+  --color-danger: var(--destructive);
+  --color-danger-soft: var(--destructive-soft);
+
+  --radius-xs: 2px;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 10px;
+  --radius-xl: 14px;
+  --radius-2xl: 18px;
+
+  --font-sans: "Pretendard", "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", system-ui, sans-serif;
+  --font-serif: "Noto Serif KR", "Nanum Myeongjo", "Batang", Georgia, "Times New Roman", serif;
+
+  /* typography scale [ADP]: 파일의 Inter/Geist 는 Pretendard 로 대체.
+     [FIG] 14/20 medium(button, nav), 16/24 regular(input), 18/28 semibold(dialog title), 14/20 regular(description) */
+  --text-display: 2rem;
+  --text-display--line-height: 1.25;
+  --text-display-lg: 2.75rem;
+  --text-display-lg--line-height: 1.2;
+  --text-title: 1.75rem;
+  --text-title--line-height: 1.35;
+  --text-title-lg: 2rem;
+  --text-title-lg--line-height: 1.35;
+  --text-lead: 1.125rem;
+  --text-lead--line-height: 1.7;
+  --text-body-sm: 0.9375rem;
+  --text-body-sm--line-height: 1.65;
+  --text-caption: 0.8125rem;
+  --text-caption--line-height: 1.5;
+}
+
+html {
+  color-scheme: light;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  line-height: 1.7;
+  -webkit-font-smoothing: antialiased;
+  word-break: keep-all;
+}
+
+:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+@layer components {
+  /* ---------- 1. Button ----------
+     [FIG] default 높이 36 / padding 16·8 / radius 10 / 14px medium, size sm 32, lg 40, icon 36×36.
+     primary: fill primary, text primary-foreground. secondary: fill secondary(테두리 없음).
+     outline: 흰 배경 + border + shadow-xs, hover 시 accent 표면. destructive: fill destructive, text 흰색 95%.
+     hover: primary/destructive 노드 opacity 0.9, secondary 0.8 (전체 opacity).
+     [INF] 전체 opacity 대신 배경 알파로 구현(텍스트 대비 유지), active/focus-visible/disabled 포인터 처리. */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    height: var(--control);
+    border: 1px solid transparent;
+    border-radius: var(--radius-lg);
+    padding: 0 1rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    line-height: 1.25rem;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background-color 0.15s, border-color 0.15s, color 0.15s, box-shadow 0.15s;
+  }
+  .btn:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--ring) 40%, transparent);
+  }
+  .btn:disabled,
+  .btn[aria-disabled="true"] {
+    cursor: not-allowed;
+    opacity: 0.5;
+    pointer-events: none;
+  }
+  .btn-primary {
+    background: var(--primary);
+    color: var(--primary-foreground);
+  }
+  .btn-primary:hover {
+    background: color-mix(in srgb, var(--primary) 90%, transparent);
+  }
+  .btn-primary:active {
+    background: var(--primary);
+  }
+  .btn-secondary {
+    background: var(--secondary);
+    color: var(--secondary-foreground);
+  }
+  .btn-secondary:hover {
+    background: color-mix(in srgb, var(--secondary) 80%, transparent);
+  }
+  .btn-secondary:active {
+    background: color-mix(in srgb, var(--secondary) 80%, var(--input));
+  }
+  .btn-outline {
+    background: var(--card);
+    color: var(--foreground);
+    border-color: var(--border);
+    box-shadow: var(--shadow-xs);
+  }
+  .btn-outline:hover {
+    background: var(--secondary);
+  }
+  .btn-outline:active {
+    background: color-mix(in srgb, var(--secondary) 80%, var(--input));
+  }
+  .btn-ghost {
+    color: var(--foreground);
+  }
+  .btn-ghost:hover {
+    background: var(--secondary);
+  }
+  .btn-ghost:active {
+    background: color-mix(in srgb, var(--secondary) 80%, var(--input));
+  }
+  .btn-link {
+    color: var(--primary);
+    padding-inline: 0.25rem;
+  }
+  .btn-link:hover {
+    text-decoration: underline;
+    text-underline-offset: 4px;
+  }
+  .btn-destructive {
+    background: var(--destructive);
+    color: rgb(255 255 255 / 0.95);
+  }
+  .btn-destructive:hover {
+    background: color-mix(in srgb, var(--destructive) 90%, transparent);
+  }
+  .btn-sm {
+    height: var(--control-sm);
+    padding-inline: 0.75rem;
+    gap: 0.375rem;
+  }
+  .btn-lg {
+    height: var(--control-lg);
+    padding-inline: 1.5rem;
+  }
+  .btn-icon {
+    width: var(--control);
+    padding: 0;
+  }
+
+  /* ---------- 2. Input / Textarea / Select ----------
+     [FIG] Input 높이 36 / padding 12·4 / radius 8 / border input / shadow-xs / 16px regular, placeholder muted-foreground.
+     focus(active): border ring + 4px 링(#a1a1a1 50%). Textarea padding 12·8, disabled opacity 0.5.
+     Label: 14px medium, label-입력 간격 12 → 여기서는 .label margin 으로 표현.
+     [ADP] 링 색은 brand 계열. [INF] hover, aria-invalid, disabled 배경. */
+  .field {
+    display: block;
+    width: 100%;
+    min-height: var(--control);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--input);
+    background: var(--card);
+    padding: 0.25rem 0.75rem;
+    font-size: 1rem;
+    line-height: 1.5rem;
+    box-shadow: var(--shadow-xs);
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  textarea.field {
+    padding-block: 0.5rem;
+  }
+  .field:hover:not(:disabled):not(:focus) {
+    border-color: var(--muted-foreground);
+  }
+  .field:focus {
+    outline: none;
+    border-color: var(--ring);
+    box-shadow: var(--shadow-xs), 0 0 0 4px color-mix(in srgb, var(--ring) 30%, transparent);
+  }
+  .field:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+  .field[aria-invalid="true"] {
+    border-color: var(--destructive);
+  }
+  .field::placeholder {
+    color: var(--muted-foreground);
+  }
+
+  .label {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 500;
+    line-height: 1.25rem;
+    margin-bottom: 0.5rem;
+  }
+  .hint {
+    font-size: 0.8125rem;
+    color: var(--muted-foreground);
+  }
+
+  /* 선택 가능한 행 (radio / checkbox 카드) [INF]: FIG Input/Button 의 border·radius·상태 규칙 재사용 */
+  .choice {
+    display: flex;
+    cursor: pointer;
+    align-items: center;
+    gap: 0.75rem;
+    border: 1px solid var(--input);
+    border-radius: var(--radius-md);
+    background: var(--card);
+    padding: 0.75rem 1rem;
+    transition: border-color 0.15s, background-color 0.15s;
+  }
+  .choice:hover {
+    border-color: var(--foreground);
+  }
+  .choice.is-selected {
+    border-color: var(--brand);
+    background: var(--brand-soft);
+  }
+  .choice:has(:focus-visible) {
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--ring) 40%, transparent);
+  }
+
+  /* ---------- 3. Card ----------
+     [FIG] Card 368×394 샘플: radius 14, border border, 배경 card, 세로 padding 24, 섹션 gap 24, 섹션 가로 padding 24,
+     그림자 없음(노드에 effect 없음). 제목 Inter SemiBold 24 / 설명 14 muted-foreground.
+     [ADP] 제품 카드는 가로 padding 도 24 로 단일화, 제목 크기는 화면 맥락에 맞춰 사용처에서 지정.
+     [INF] .card-compact(16): 목록 안의 중첩 카드용. */
+  .card {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    background: var(--card);
+    color: var(--card-foreground);
+    padding: 1.5rem;
+  }
+  .card-compact {
+    padding: 1rem;
+  }
+  .card-muted {
+    border-radius: var(--radius-xl);
+    background: color-mix(in srgb, var(--foreground) 3%, transparent);
+    padding: 1.5rem;
+  }
+  .card-dashed {
+    border: 1px dashed var(--input);
+    border-radius: var(--radius-xl);
+    padding: 2rem 1.5rem;
+    text-align: center;
+    color: var(--muted-foreground);
+  }
+
+  /* ---------- 6. Badge ----------
+     [FIG] padding 10·2 (높이 22), radius 10, 12px semibold / lh 16. variant: default(primary 채움),
+     secondary(secondary 채움), destructive(#dc2626 + 흰색 95%), outline(border 1px). 숫자 배지는 pill(9999), 높이 20.
+     [ADP] 자료 유형 배지(TypeBadge)는 North 고유 3색을 utility 로 덧씌움. brand 변형 추가.
+     [INF] 파일에 없는 hover/focus 는 정의하지 않음(배지는 비대화형). */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    border: 1px solid transparent;
+    border-radius: var(--radius-lg);
+    padding: 0.125rem 0.625rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    line-height: 1rem;
+  }
+  .badge-default {
+    background: var(--primary);
+    color: var(--primary-foreground);
+  }
+  .badge-secondary {
+    background: var(--secondary);
+    color: var(--secondary-foreground);
+  }
+  .badge-destructive {
+    background: var(--destructive);
+    color: rgb(255 255 255 / 0.95);
+  }
+  .badge-outline {
+    border-color: var(--border);
+    color: var(--foreground);
+  }
+  .badge-brand,
+  .ai-label {
+    background: var(--brand-soft);
+    color: var(--brand);
+  }
+  .badge-count {
+    min-width: 1.25rem;
+    justify-content: center;
+    border-radius: 9999px;
+    padding: 0 0.375rem;
+  }
+
+  /* ---------- 7. Tabs ----------
+     [FIG] 리스트: 높이 36, padding 3, radius 10, 배경 muted. 트리거: padding 8·4(높이 29), radius 8, 14px medium.
+     활성 트리거: 배경 background(흰색) + border. 비활성: 투명. 패널은 Card 규칙과 8px 간격.
+     [INF] 활성은 aria-selected="true" 로 표현, hover/focus-visible/disabled 는 Button 규칙 재사용.
+     (현재 North 화면에는 탭이 없어 미사용 — 도입 시 role=tablist/tab/tabpanel 과 함께 사용) */
+  .tabs-list {
+    display: inline-flex;
+    align-items: center;
+    height: var(--control);
+    border-radius: var(--radius-lg);
+    background: var(--muted);
+    padding: 3px;
+  }
+  .tabs-trigger {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid transparent;
+    border-radius: var(--radius-md);
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    line-height: 1.25rem;
+    color: var(--foreground);
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background-color 0.15s, border-color 0.15s, color 0.15s;
+  }
+  .tabs-trigger:hover:not([aria-selected="true"]) {
+    color: var(--muted-foreground);
+  }
+  .tabs-trigger[aria-selected="true"] {
+    background: var(--background);
+    border-color: var(--border);
+  }
+  .tabs-trigger:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--ring) 40%, transparent);
+  }
+  .tabs-trigger:disabled {
+    opacity: 0.5;
+    pointer-events: none;
+  }
+  .tabs-panel {
+    margin-top: 0.5rem;
+  }
+
+  /* ---------- 8. Select ----------
+     [FIG] 트리거: 높이 36, padding 12·8, radius 8, border, 배경 background, 우측 chevron-down 16, 14px medium,
+     placeholder muted-foreground. 드롭다운: radius 8, padding 4, border, 배경 popover,
+     shadow(0 2 4 -2 + 0 4 6 -1 @10%). 항목: padding 8·6(높이 32), radius 6, 14px regular, 포커스 항목 fill accent.
+     그룹 라벨 14px semibold muted-foreground.
+     [ADP] 네이티브 <select> 를 쓰므로 트리거만 스타일링(.field 규칙 + chevron). 글자는 폼 일관성을 위해 .field 의 16px 유지.
+     [INF] .menu* 는 커스텀 드롭다운/셀렉트 도입 시 사용. */
+  select.field {
+    appearance: none;
+    padding-right: 2.25rem;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236a665e' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    background-size: 1rem;
+    cursor: pointer;
+  }
+  .menu {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background: var(--popover);
+    color: var(--popover-foreground);
+    padding: 0.25rem;
+    box-shadow: 0 2px 4px -2px rgb(0 0 0 / 0.1), 0 4px 6px -1px rgb(0 0 0 / 0.1);
+  }
+  .menu-label {
+    padding: 0.375rem 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    line-height: 1.25rem;
+    color: var(--muted-foreground);
+  }
+  .menu-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    border-radius: var(--radius-sm);
+    padding: 0.375rem 0.5rem;
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    cursor: pointer;
+  }
+  .menu-item:hover,
+  .menu-item:focus-visible,
+  .menu-item[aria-selected="true"] {
+    background: var(--secondary);
+    outline: none;
+  }
+  .menu-item[aria-disabled="true"] {
+    opacity: 0.5;
+    pointer-events: none;
+  }
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    border: 1px solid var(--input);
+    border-radius: 999px;
+    padding: 0.25rem 0.75rem;
+    font-size: 0.875rem;
+    color: var(--muted-foreground);
+  }
+  .chip.is-selected {
+    border-color: var(--brand);
+    background: var(--brand-soft);
+    color: var(--brand);
+  }
+  /* ---------- Alert [INF] ---------- */
+  .alert {
+    border: 1px solid color-mix(in srgb, var(--destructive) 30%, transparent);
+    border-radius: var(--radius-lg);
+    background: var(--destructive-soft);
+    color: var(--destructive);
+    padding: 0.875rem 1rem;
+    font-size: 0.875rem;
+  }
+
+  /* ---------- 4. Dialog ----------
+     [FIG] 패널: radius 10, border, 배경 card/popover, padding 24, 섹션 gap 16, shadow(0 10 15 -3 + 0 4 6 -4 @10%),
+     오버레이 검정 30%, 제목 18/28 semibold, 설명 14/20 muted-foreground, 푸터 버튼 gap 8, 닫기 아이콘 16px opacity 0.7.
+     샘플 크기(423×344, 600×400)는 고정값이 아니므로 max-width 만 둔다 [INF]. */
+  .dialog {
+    margin: auto;
+    width: calc(100% - 2.5rem);
+    max-width: 28rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    background: var(--popover);
+    color: var(--popover-foreground);
+    padding: 0;
+    box-shadow: var(--shadow-lg);
+  }
+  .dialog-body {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1.5rem;
+  }
+  .dialog-title {
+    font-size: 1.125rem;
+    line-height: 1.75rem;
+    font-weight: 600;
+  }
+  .dialog-description {
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    color: var(--muted-foreground);
+  }
+  .dialog-footer {
+    display: flex;
+    flex-direction: column-reverse;
+    gap: 0.5rem;
+  }
+  @media (min-width: 40rem) {
+    .dialog-footer {
+      flex-direction: row;
+      justify-content: flex-end;
+    }
+  }
+
+  /* ---------- 5. Navigation ----------
+     [FIG] Navigation Menu 항목: padding 16·8(높이 33), radius 8, 14px medium, 항목 간격 4,
+     열림/활성 상태 fill accent(#f5f5f5) + 텍스트 #171717. 팝업은 radius 8, padding 16, border, shadow.
+     [ADP] 모바일 폭(4개 항목이 한 줄)을 위해 가로 padding 을 12 로 줄이고 sm 이상에서 16.
+     [INF] hover 는 활성과 같은 표면, 활성은 aria-current 로 표현, 포커스 링은 Button 과 동일. */
+  .nav-link {
+    display: inline-flex;
+    align-items: center;
+    border-radius: var(--radius-md);
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    line-height: 1.0625rem;
+    color: var(--foreground);
+    transition: background-color 0.15s, color 0.15s;
+  }
+  @media (min-width: 40rem) {
+    .nav-link {
+      padding-inline: 1rem;
+    }
+  }
+  .nav-link:hover,
+  .nav-link[aria-current="page"] {
+    background: var(--secondary);
+  }
+  .nav-link:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--ring) 40%, transparent);
+  }
+
+  /* ---------- Typography helpers ---------- */
+  .eyebrow {
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    color: var(--muted-foreground);
+  }
+}
+
+dialog::backdrop {
+  background: rgb(0 0 0 / 0.3); /* [FIG] 오버레이 #000 30% */
+}
