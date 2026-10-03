@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { REFLECTION_QUESTIONS } from "@/lib/constants";
 import type { ReflectionAnswers, ReflectionSummary } from "@/lib/types";
+import { track } from "@/lib/analytics";
 
 type Step = "draft" | "summarized"; // 저장(Saved) 이후에는 서버가 읽기 화면을 렌더링한다
 
@@ -133,7 +134,10 @@ export function ReflectionFlow({ libraryItemId }: { libraryItemId: string }) {
       ))}
       {errorBox}
       <div className="flex flex-wrap items-center gap-3">
-        <button type="button" className="btn btn-primary" onClick={() => void save()} disabled={busy}>
+        <button type="button" className="btn btn-primary" onClick={() => {
+            track("Reflection Save Click");
+            void save();
+          }} disabled={busy}>
           {busy ? "저장하고 있어요…" : "회고 저장"}
         </button>
         <button type="button" className="btn btn-ghost" onClick={() => setStep("draft")} disabled={busy}>

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { TypeBadge } from "./TypeBadge";
 import type { CardBasis, ContentType } from "@/lib/types";
+import { track } from "@/lib/analytics";
 
 export interface CardView {
   id: string;
@@ -119,7 +120,12 @@ export function TodayCards({
               <button type="button" className="btn btn-outline" onClick={cancel} disabled={submitting}>
                 취소
               </button>
-              <button type="button" className="btn btn-primary" onClick={() => void confirm()} disabled={submitting}>
+              <button type="button" className="btn btn-primary" onClick={() => {
+                  track("Recommendation Confirm Click");
+                  void confirm();
+                }}
+                disabled={submitting}
+              >
                 {submitting ? "선택하는 중…" : "이 자료 선택하기"}
               </button>
             </div>
@@ -184,7 +190,10 @@ function Card({
       <div className="mt-5 flex flex-wrap items-center gap-3 border-t border-line pt-5">
         {state === "open" && (
           <>
-            <button type="button" className="btn btn-primary" onClick={onSelect}>
+            <button type="button" className="btn btn-primary" onClick={() => {
+                track("Recommendation Select Click");
+                onSelect();
+              }}>
               오늘 읽을 자료로 선택
             </button>
             <span className="hint">원문은 선택하면 열 수 있어요.</span>

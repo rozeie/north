@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import { CAREER_STAGES, JOB_FAMILIES, MAX_PDF_BYTES } from "@/lib/constants";
+import { track } from "@/lib/analytics";
 
 // 오류가 난 첫 필드로 포커스를 옮기기 위한 순서와 id
 const FIELD_ORDER: [string, string][] = [
@@ -93,6 +94,7 @@ export function StartForm() {
   async function submit(withoutPdf = false) {
     setServerError("");
     if (!validate()) return;
+    track("Profile Analyze Submit", { withoutPdf });
     setLoading(true);
     const fd = new FormData();
     fd.set("job_family", jobFamily);

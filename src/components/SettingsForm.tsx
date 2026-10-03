@@ -2,6 +2,7 @@
 
 import { signOut } from "next-auth/react";
 import { useState } from "react";
+import { track } from "@/lib/analytics";
 
 export function SettingsForm({ initialTime }: { initialTime: string }) {
   const [time, setTime] = useState(initialTime);
@@ -65,7 +66,10 @@ export function SettingsForm({ initialTime }: { initialTime: string }) {
         <h2 id="s-account" className="mb-3 text-lead font-semibold">
           계정
         </h2>
-        <button type="button" className="btn btn-outline" onClick={() => void signOut({ callbackUrl: "/" })}>
+        <button type="button" className="btn btn-outline" onClick={() => {
+            track("Sign Out Click");
+            void signOut({ callbackUrl: "/" });
+          }}>
           로그아웃
         </button>
       </section>

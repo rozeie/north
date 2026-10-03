@@ -2,6 +2,7 @@
 
 import { signIn } from "next-auth/react";
 import { useState } from "react";
+import { track } from "@/lib/analytics";
 
 /** Google 로그인 버튼. 랜딩의 GNB·Hero·하단 CTA 에서 재사용한다. 인증 호출은 기존과 동일. */
 export function GoogleSignInButton({
@@ -20,6 +21,7 @@ export function GoogleSignInButton({
       className={className}
       disabled={busy || !googleReady}
       onClick={() => {
+        track("Sign In Click", { provider: "google" });
         setBusy(true);
         void signIn("google", { callbackUrl: "/" });
       }}

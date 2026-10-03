@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import type { DirectionBody, NamedItem } from "@/lib/types";
+import { track } from "@/lib/analytics";
 
 const newId = () =>
   typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID() : `t-${Date.now()}-${Math.random()}`;
@@ -200,7 +201,10 @@ export function DirectionEditor({ initial, confirmed }: { initial: DirectionBody
       )}
 
       <div className="flex flex-wrap items-center gap-3 border-t border-border pt-8">
-        <button type="button" className="btn btn-primary" disabled={saving || Boolean(problem)} onClick={() => void save()}>
+        <button type="button" className="btn btn-primary" disabled={saving || Boolean(problem)} onClick={() => {
+            track("Direction Save Click", { confirmed });
+            void save();
+          }}>
           {saving ? "저장하고 있어요…" : confirmed ? "수정 내용 저장" : "이 방향으로 시작하기"}
         </button>
         {confirmed && (
