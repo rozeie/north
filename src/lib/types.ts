@@ -72,6 +72,9 @@ export interface Content {
   job_families: JobFamily[];
   topic_tags: string[];
   difficulty: Difficulty;
+  /** 선택 필드. 없으면 화면에서 태그 기반 문구로 대체한다(mock). */
+  summary?: string;
+  key_points?: string[];
 }
 
 export interface DailyRecommendation {
@@ -126,6 +129,8 @@ export interface ReflectionSummary {
 
 export interface Reflection {
   id: string;
+  /** 가벼운 회고: "이 콘텐츠에서 가져갈 것" 1~2문장. 있으면 answers/summary 는 이 값에서 파생된다. */
+  takeaway?: string;
   user_id: string;
   library_item_id: string;
   answers: ReflectionAnswers;

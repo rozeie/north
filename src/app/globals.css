@@ -603,6 +603,39 @@ body {
     box-shadow: 0 0 0 3px color-mix(in srgb, var(--ring) 40%, transparent);
   }
 
+  /* 서비스 내부 주 메뉴(GNB). 헤더 높이를 꽉 채우고, 활성 메뉴는 하단 brand 라인으로 표시한다. [INF] 기존 토큰만 사용 */
+  .gnb-link {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    padding-inline: 0.875rem;
+    font-size: 0.9375rem;
+    font-weight: 500;
+    color: var(--muted-foreground);
+    transition: color 0.15s;
+  }
+  .gnb-link:hover {
+    color: var(--foreground);
+  }
+  .gnb-link[aria-current="page"] {
+    color: var(--foreground);
+    font-weight: 600;
+  }
+  .gnb-link[aria-current="page"]::after {
+    content: "";
+    position: absolute;
+    inset-inline: 0.875rem;
+    bottom: -1px;
+    height: 2px;
+    border-radius: 2px;
+    background: var(--brand);
+  }
+  .gnb-link:focus-visible {
+    outline: none;
+    border-radius: var(--radius-md);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--ring) 40%, transparent);
+  }
+
   /* ---------- Typography helpers ---------- */
   .eyebrow {
     font-size: 0.75rem;

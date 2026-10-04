@@ -33,15 +33,25 @@ function SectionHeader({ id, step, title, description, required }: { id: string;
   );
 }
 
-export function StartForm() {
+export interface StartInitial {
+  jobFamily: string;
+  stage: string;
+  role: string;
+  concern: string;
+  cover: string;
+  portfolio: string;
+}
+
+/** reanalyze: 확정 이후 프로필 다시 분석. 기존 입력값을 채워 두고, 이력서 PDF는 다시 올려야 한다(원본은 저장하지 않음). */
+export function StartForm({ initial, reanalyze = false }: { initial?: StartInitial; reanalyze?: boolean }) {
   const router = useRouter();
   const fileRef = useRef<HTMLInputElement>(null);
-  const [jobFamily, setJobFamily] = useState("");
-  const [stage, setStage] = useState("");
-  const [role, setRole] = useState("");
-  const [concern, setConcern] = useState("");
-  const [cover, setCover] = useState("");
-  const [portfolio, setPortfolio] = useState("");
+  const [jobFamily, setJobFamily] = useState(initial?.jobFamily ?? "");
+  const [stage, setStage] = useState(initial?.stage ?? "");
+  const [role, setRole] = useState(initial?.role ?? "");
+  const [concern, setConcern] = useState(initial?.concern ?? "");
+  const [cover, setCover] = useState(initial?.cover ?? "");
+  const [portfolio, setPortfolio] = useState(initial?.portfolio ?? "");
   const [file, setFile] = useState<{ name: string; size: number } | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [serverError, setServerError] = useState("");
@@ -97,6 +107,7 @@ export function StartForm() {
     track("Profile Analyze Submit", { withoutPdf });
     setLoading(true);
     const fd = new FormData();
+    if (reanalyze) fd.set("reanalyze", "1");
     fd.set("job_family", jobFamily);
     fd.set("career_stage", stage);
     fd.set("target_role", role);

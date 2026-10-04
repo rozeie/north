@@ -19,11 +19,14 @@ const InputSchema = z.object({
 
 // 최초 입력 제출: 이력서 PDF 1회 분석 → 구조화 프로필 저장 + 성장 방향 초안 생성 (F2, F3-1)
 export const POST = withUser(async (req, { user }) => {
-  if ((await repo.getOnboardingState(user.id)) !== "SignedIn") {
+  const form = await req.formData();
+  // 프로필 다시 분석: 확정 이후 사용자만 허용한다(새 초안은 다시 확정해야 추천 기준이 된다).
+  const reanalyze = form.get("reanalyze") === "1";
+  const state = await repo.getOnboardingState(user.id);
+  if (reanalyze ? state !== "DirectionConfirmed" : state !== "SignedIn") {
     return fail("이미 최초 분석이 끝났어요. 성장 방향 화면에서 이어서 진행해 주세요.", 409);
   }
 
-  const form = await req.formData();
   const parsed = InputSchema.safeParse({
     job_family: form.get("job_family"),
     career_stage: form.get("career_stage"),
@@ -77,10 +80,11 @@ export const POST = withUser(async (req, { user }) => {
       structured: analysis.profile, // 이력서 원본은 저장하지 않는다
       created_at: new Date().toISOString(),
     },
-    { stuck_hypothesis: analysis.draft.stuck_hypothesis, skills, topics, priority_topic_id: priority.id }
+    { stuck_hypothesis: analysis.draft.stuck_hypothesis, skills, topics, priority_topic_id: priority.id },
+    { replace: reanalyze }
   );
   if (!created) return fail("이미 최초 분석이 끝났어요.", 409);
 
-  await repo.logEvent(user.id, "draft_generated");
+  await repo.logEvent(user.id, reanalyze ? "profile_reanalyzed" : "draft_generated");
   return ok();
 });

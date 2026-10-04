@@ -5,7 +5,7 @@ import { formatDateKst } from "@/lib/cycle";
 import * as repo from "@/lib/repo";
 import { ConcernEditor } from "@/components/ConcernEditor";
 import { LibraryList } from "@/components/LibraryList";
-import { PageTitle, Shell } from "@/components/Shell";
+import { DirectionTabs, PageTitle, Shell } from "@/components/Shell";
 import { TrackView } from "@/components/TrackView";
 
 export const dynamic = "force-dynamic";
@@ -24,9 +24,10 @@ export default async function ProfilePage() {
   const itemById = new Map(items.map((i) => [i.id, i]));
 
   return (
-    <Shell active="profile">
+    <Shell active="direction">
       <TrackView step="profile" />
-      <PageTitle eyebrow="커리어 프로필" title="나의 커리어 프로필" />
+      <PageTitle eyebrow="내 방향" title="나의 커리어 프로필" />
+      <DirectionTabs active="profile" />
 
       <div className="space-y-10">
         <section aria-labelledby="p-concern">
@@ -73,7 +74,11 @@ export default async function ProfilePage() {
           <h2 id="p-library" className="mb-3 text-lead font-semibold">
             저장한 자료
           </h2>
-          <LibraryList items={items} reflectedIds={new Set(reflections.map((r) => r.library_item_id))} />
+          <LibraryList
+            items={items}
+            reflectedIds={new Set(reflections.map((r) => r.library_item_id))}
+            takeaways={Object.fromEntries(reflections.filter((r) => r.takeaway).map((r) => [r.library_item_id, r.takeaway!]))}
+          />
         </section>
 
         <section aria-labelledby="p-reflections">
@@ -92,20 +97,27 @@ export default async function ProfilePage() {
                     <p className="text-sm text-faint">
                       {formatDateKst(r.saved_at)} · {content?.title ?? "자료"}
                     </p>
+                    {r.takeaway ? (
+                      <p className="mt-3 text-body-sm">
+                        <span className="eyebrow mr-2">가져갈 것</span>
+                        {r.takeaway}
+                      </p>
+                    ) : (
                     <dl className="mt-3 space-y-3 text-body-sm">
-                      <div>
-                        <dt className="eyebrow">배운 내용</dt>
-                        <dd>{r.summary.learned}</dd>
-                      </div>
-                      <div>
-                        <dt className="eyebrow">아직 남은 고민</dt>
-                        <dd>{r.summary.remaining_concern || "—"}</dd>
-                      </div>
-                      <div>
-                        <dt className="eyebrow">다음에 시도해볼 행동</dt>
-                        <dd>{r.summary.next_action}</dd>
-                      </div>
-                    </dl>
+                          <div>
+                            <dt className="eyebrow">배운 내용</dt>
+                            <dd>{r.summary.learned}</dd>
+                          </div>
+                          <div>
+                            <dt className="eyebrow">아직 남은 고민</dt>
+                            <dd>{r.summary.remaining_concern || "—"}</dd>
+                          </div>
+                          <div>
+                            <dt className="eyebrow">다음에 시도해볼 행동</dt>
+                            <dd>{r.summary.next_action}</dd>
+                          </div>
+                        </dl>
+                    )}
                     {item && (
                       <Link
                         href={`/reflection/${item.id}`}

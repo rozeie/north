@@ -52,10 +52,26 @@ export const getProfile = (userId: string) => readOnly((db) => db.profiles.find(
 export const getDirection = (userId: string) =>
   readOnly((db) => db.directions.find((d) => d.user_id === userId) ?? null);
 
-/** 최초 분석 결과 저장: 프로필 + 미확정 초안. 이미 프로필이 있으면 null(분석은 1회만). */
-export async function createProfileAndDraft(profile: CareerProfile, draft: DirectionBody): Promise<boolean> {
+/**
+ * 분석 결과 저장: 프로필 + 미확정 초안. 이미 프로필이 있으면 false(최초 분석은 1회).
+ * replace=true(프로필 다시 분석)이면 기존 프로필·성장 방향·현재 추천 세트를 교체한다.
+ * 서재와 회고는 그대로 유지하고, 새 초안을 확정할 때까지 추천은 중단된다.
+ */
+export async function createProfileAndDraft(
+  profile: CareerProfile,
+  draft: DirectionBody,
+  opts: { replace?: boolean } = {}
+): Promise<boolean> {
   return mutate((db) => {
-    if (db.profiles.some((p) => p.user_id === profile.user_id)) return false;
+    const exists = db.profiles.some((p) => p.user_id === profile.user_id);
+    if (exists && !opts.replace) return false;
+    if (exists) {
+      const setIds = new Set(db.recommendations.filter((r) => r.user_id === profile.user_id).map((r) => r.id));
+      db.profiles = db.profiles.filter((p) => p.user_id !== profile.user_id);
+      db.directions = db.directions.filter((d) => d.user_id !== profile.user_id);
+      db.recommendations = db.recommendations.filter((r) => !setIds.has(r.id));
+      db.cards = db.cards.filter((c) => !setIds.has(c.recommendation_id));
+    }
     db.profiles.push(profile);
     db.directions.push({
       user_id: profile.user_id,
@@ -175,6 +191,46 @@ export async function confirmSelection(userId: string, cardId: string, at: numbe
   });
 }
 
+export type SaveResult =
+  | { ok: true; item: LibraryItem; created: boolean }
+  | { ok: false; reason: "not_found" };
+
+/** 추천 카드를 서재에 저장한다. 같은 자료는 한 번만 보관한다(이미 있으면 기존 항목 반환). */
+export async function saveCardToLibrary(userId: string, cardId: string): Promise<SaveResult> {
+  return mutate((db) => {
+    const card = db.cards.find((c) => c.id === cardId);
+    const set = card && db.recommendations.find((r) => r.id === card.recommendation_id && r.user_id === userId);
+    if (!card || !set) return { ok: false, reason: "not_found" } as const;
+    const existing = db.library.find((i) => i.user_id === userId && i.content_id === card.content_id);
+    if (existing) return { ok: true, item: existing, created: false } as const;
+    const item: LibraryItem = {
+      id: randomUUID(),
+      user_id: userId,
+      content_id: card.content_id,
+      source_card_id: card.id,
+      reason_snapshot: card.reason,
+      check_questions_snapshot: card.check_questions,
+      basis_snapshot: card.basis,
+      saved_at: now(),
+    };
+    db.library.push(item);
+    return { ok: true, item, created: true } as const;
+  });
+}
+
+export type UnsaveResult = { ok: true } | { ok: false; reason: "not_found" | "has_reflection" };
+
+/** 저장 취소. 회고가 있는 자료는 회고 이력을 보존하기 위해 취소할 수 없다. */
+export async function removeFromLibrary(userId: string, contentId: string): Promise<UnsaveResult> {
+  return mutate((db) => {
+    const item = db.library.find((i) => i.user_id === userId && i.content_id === contentId);
+    if (!item) return { ok: false, reason: "not_found" } as const;
+    if (db.reflections.some((r) => r.library_item_id === item.id)) return { ok: false, reason: "has_reflection" } as const;
+    db.library = db.library.filter((i) => i.id !== item.id);
+    return { ok: true } as const;
+  });
+}
+
 // ── 서재 / 회고 ────────────────────────────────────
 export const getLibrary = (userId: string) =>
   readOnly((db) => db.library.filter((i) => i.user_id === userId).sort((a, b) => b.saved_at.localeCompare(a.saved_at)));
@@ -196,6 +252,20 @@ export async function saveReflection(r: Omit<Reflection, "id" | "saved_at">): Pr
     const row: Reflection = { id: randomUUID(), saved_at: now(), ...r };
     db.reflections.push(row);
     return row;
+  });
+}
+
+// ── 개발 전용 ───────────────────────────────────────
+/** 개발용 샘플 계정 초기화: 사용자의 프로필·방향·추천·서재·회고를 지운다(계정과 설정은 유지). /api/dev/seed 에서만 호출한다. */
+export async function resetUserData(userId: string): Promise<void> {
+  await mutate((db) => {
+    const setIds = new Set(db.recommendations.filter((r) => r.user_id === userId).map((r) => r.id));
+    db.profiles = db.profiles.filter((p) => p.user_id !== userId);
+    db.directions = db.directions.filter((d) => d.user_id !== userId);
+    db.recommendations = db.recommendations.filter((r) => r.user_id !== userId);
+    db.cards = db.cards.filter((c) => !setIds.has(c.recommendation_id));
+    db.library = db.library.filter((i) => i.user_id !== userId);
+    db.reflections = db.reflections.filter((r) => r.user_id !== userId);
   });
 }
 

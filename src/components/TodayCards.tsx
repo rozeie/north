@@ -1,222 +1,83 @@
-"use client";
-
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { TrackedLink, TrackOnMount } from "./TrackEvent";
+import { SaveButton } from "./SaveButton";
 import { TypeBadge } from "./TypeBadge";
 import type { CardBasis, ContentType } from "@/lib/types";
-import { track } from "@/lib/analytics";
 
 export interface CardView {
   id: string;
   slot_type: ContentType;
   reason: string;
-  check_questions: string[];
   basis: CardBasis;
-  content: { title: string; author_source: string; url: string; est_read_min: number };
+  saved: boolean;
+  libraryItemId: string | null;
+  content: { id: string; title: string; summary: string; author_source: string; est_read_min: number };
 }
 
-type CardState = "open" | "selected" | "locked";
+const ACCENT: Record<ContentType, string> = {
+  concept: "bg-concept",
+  case: "bg-case",
+  evidence: "bg-evidence",
+};
 
-export function TodayCards({
-  cards,
-  selectedCardId,
-  libraryItemId,
-}: {
-  cards: CardView[];
-  selectedCardId: string | null;
-  libraryItemId: string | null;
-}) {
-  const router = useRouter();
-  const dialogRef = useRef<HTMLDialogElement>(null);
-  // 확인 모달이 열린 상태(Confirming). 서버에는 저장하지 않는다.
-  const [pending, setPending] = useState<CardView | null>(null);
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState("");
-
-  useEffect(() => {
-    const dlg = dialogRef.current;
-    if (!dlg) return;
-    if (pending && !dlg.open) dlg.showModal();
-    if (!pending && dlg.open) dlg.close();
-  }, [pending]);
-
-  function cancel() {
-    if (submitting) return;
-    setPending(null);
-    setError("");
-  }
-
-  async function confirm() {
-    if (!pending) return;
-    setSubmitting(true);
-    setError("");
-    try {
-      const res = await fetch("/api/recommendations/select", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ card_id: pending.id }),
-      });
-      const data = (await res.json()) as { ok: boolean; error?: string };
-      if (!data.ok) {
-        setError(data.error ?? "선택하지 못했어요. 다시 시도해 주세요.");
-        if (res.status === 409) router.refresh();
-        setSubmitting(false);
-        return;
-      }
-      setSubmitting(false);
-      setPending(null);
-      router.refresh();
-    } catch {
-      setError("네트워크 문제로 선택하지 못했어요. 다시 시도해 주세요.");
-      setSubmitting(false);
-    }
-  }
-
+/**
+ * 오늘의 추천 3개: 하나의 패널 안에서 열(셀)로 나란히 비교하는 구조.
+ * 셀 전체가 상세로 연결되고(제목 링크를 셀 전체로 확장), 저장 버튼만 별도로 동작한다.
+ * 긴 추천 이유와 핵심 포인트는 상세 페이지에서 보여주므로 여기서는 2줄로 요약한다.
+ */
+export function TodayCards({ cards }: { cards: CardView[] }) {
   return (
-    <>
-      <ol className="space-y-6">
-        {cards.map((card) => {
-          const state: CardState = !selectedCardId ? "open" : card.id === selectedCardId ? "selected" : "locked";
-          return (
-            <li key={card.id}>
-              <Card card={card} state={state} libraryItemId={libraryItemId} onSelect={() => setPending(card)} />
-            </li>
-          );
-        })}
-      </ol>
+    <ol className="grid divide-y divide-border md:grid-cols-3 md:divide-x md:divide-y-0">
+      {cards.map((card) => {
+        const meta = { content_id: card.content.id, content_type: card.slot_type, recommendation_reason: card.reason };
+        return (
+          <li key={card.id} className="relative flex">
+            <TrackOnMount event="Recommendation Viewed" props={{ ...meta, source: "home" }} />
+            <article
+              aria-label={card.content.title}
+              className="group relative flex w-full flex-col p-5 transition-colors hover:bg-secondary/50 has-[a:focus-visible]:bg-secondary/50 lg:p-6"
+            >
+              <span aria-hidden className={`absolute inset-x-0 top-0 h-0.5 ${ACCENT[card.slot_type]} opacity-60`} />
 
-      <dialog
-        ref={dialogRef}
-        aria-labelledby="confirm-title"
-        aria-describedby="confirm-desc"
-        onCancel={(e) => {
-          e.preventDefault();
-          cancel();
-        }}
-        onClick={(e) => {
-          if (e.target === dialogRef.current) cancel(); // 바깥 클릭 = 취소
-        }}
-        className="dialog"
-      >
-        {pending && (
-          <div className="dialog-body">
-            <div>
-              <p className="eyebrow mb-2">선택한 자료</p>
-            <p className="text-lead font-semibold leading-snug">{pending.content.title}</p>
-            </div>
-            <h2 id="confirm-title" className="dialog-title">
-              오늘 읽을 자료로 선택할까요?
-            </h2>
-            <p id="confirm-desc" className="dialog-description">
-              선택을 확정하면 오늘은 다른 자료로 변경할 수 없어요.
-            </p>
-            {error && (
-              <p role="alert" className="text-sm text-destructive">
-                {error}
-              </p>
-            )}
-            <div className="dialog-footer">
-              <button type="button" className="btn btn-outline" onClick={cancel} disabled={submitting}>
-                취소
-              </button>
-              <button type="button" className="btn btn-primary" onClick={() => {
-                  track("Recommendation Confirm Click");
-                  void confirm();
-                }}
-                disabled={submitting}
-              >
-                {submitting ? "선택하는 중…" : "이 자료 선택하기"}
-              </button>
-            </div>
-          </div>
-        )}
-      </dialog>
-    </>
-  );
-}
+              <div className="flex items-center justify-between gap-2">
+                <TypeBadge type={card.slot_type} />
+                <span className="text-caption text-faint">약 {card.content.est_read_min}분</span>
+              </div>
 
-function Card({
-  card,
-  state,
-  libraryItemId,
-  onSelect,
-}: {
-  card: CardView;
-  state: CardState;
-  libraryItemId: string | null;
-  onSelect: () => void;
-}) {
-  const tone =
-    state === "selected"
-      ? "border-accent bg-surface ring-1 ring-accent"
-      : state === "locked"
-        ? "border-line bg-transparent opacity-55"
-        : "border-line bg-surface";
+              <h3 className="mt-4 line-clamp-2 md:min-h-[3.1rem] text-lead font-semibold leading-snug tracking-tight">
+                <TrackedLink
+                  href={`/content/${card.content.id}`}
+                  className="outline-none after:absolute after:inset-0 after:content-['']"
+                  event="Recommendation Detail Click"
+                  props={{ ...meta, source: "home_card" }}
+                >
+                  {card.content.title}
+                </TrackedLink>
+              </h3>
+              <p className="mt-1.5 truncate text-caption text-faint">{card.content.author_source}</p>
 
-  return (
-    <article aria-label={card.content.title} className={`card ${tone}`}>
-      <div className="flex flex-wrap items-center gap-2">
-        <TypeBadge type={card.slot_type} />
-        {state === "selected" && <span className="ai-label">오늘 읽을 자료</span>}
-      </div>
+              <div className="mt-4 flex-1">
+                <p className="eyebrow mb-1 text-brand">추천 이유</p>
+                <p className="line-clamp-2 text-body-sm text-muted">{card.reason}</p>
+              </div>
 
-      <h3 className="mt-3 text-lead font-semibold leading-snug">{card.content.title}</h3>
-
-      <div className="mt-5">
-        <p className="eyebrow mb-1">지금 이 자료가 필요한 이유</p>
-        <p className="text-lead leading-relaxed">{card.reason}</p>
-      </div>
-
-      <p className="mt-4 text-sm text-muted">
-        <span className="font-semibold text-ink">추천 근거 </span>
-        {card.basis.label}
-        {card.basis.quote && <span> · “{card.basis.quote}”</span>}
-      </p>
-
-      <div className="mt-5">
-        <p className="eyebrow mb-1">읽으면서 확인할 질문</p>
-        <ul className="list-disc space-y-1 pl-5 text-body-sm text-muted marker:text-faint">
-          {card.check_questions.map((q) => (
-            <li key={q}>{q}</li>
-          ))}
-        </ul>
-      </div>
-
-      <p className="mt-5 text-sm text-faint">
-        {card.content.author_source} · 약 {card.content.est_read_min}분
-      </p>
-
-      <div className="mt-5 flex flex-wrap items-center gap-3 border-t border-line pt-5">
-        {state === "open" && (
-          <>
-            <button type="button" className="btn btn-primary" onClick={() => {
-                track("Recommendation Select Click");
-                onSelect();
-              }}>
-              오늘 읽을 자료로 선택
-            </button>
-            <span className="hint">원문은 선택하면 열 수 있어요.</span>
-          </>
-        )}
-        {state === "selected" && (
-          <>
-            <a href={card.content.url} target="_blank" rel="noopener noreferrer" className="btn btn-primary">
-              원문 읽기 ↗
-            </a>
-            {libraryItemId && (
-              <Link href={`/reflection/${libraryItemId}`} className="btn btn-outline">
-                회고 작성하기
-              </Link>
-            )}
-          </>
-        )}
-        {state === "locked" && (
-          <button type="button" className="btn btn-outline" disabled>
-            선택할 수 없어요
-          </button>
-        )}
-      </div>
-    </article>
+              <div className="mt-5 flex items-center justify-between gap-2">
+                <span aria-hidden className="text-caption font-medium text-muted transition-colors group-hover:text-foreground">
+                  상세 보기 →
+                </span>
+                <span className="relative z-10">
+                  <SaveButton
+                    compact
+                    contentId={card.content.id}
+                    cardId={card.id}
+                    saved={card.saved}
+                    meta={{ content_type: card.slot_type, recommendation_reason: card.reason, source: "home_card" }}
+                  />
+                </span>
+              </div>
+            </article>
+          </li>
+        );
+      })}
+    </ol>
   );
 }

@@ -14,12 +14,13 @@ export default async function HomePage() {
   const direction = await repo.getDirection(user.id);
   if (!direction) return null;
 
+  const context = <DirectionSummary direction={direction} />;
+
   return (
-    <Shell active="home">
+    <Shell active="home" wide>
       <TrackView step="home" />
-      <DirectionSummary direction={direction} />
-      <Suspense fallback={<RecommendationSkeleton />}>
-        <TodayRecommendations userId={user.id} />
+      <Suspense fallback={<RecommendationSkeleton context={context} />}>
+        <TodayRecommendations userId={user.id} context={context} />
       </Suspense>
     </Shell>
   );

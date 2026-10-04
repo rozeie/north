@@ -70,3 +70,9 @@ export function formatDateKst(iso: string): string {
     day: "numeric",
   }).format(new Date(iso));
 }
+
+/** 다음 추천 교체까지 남은 시간(짧은 표기). 1시간 미만이면 분 단위. */
+export function formatRemaining(endIso: string, at: number = Date.now()): string {
+  const min = Math.max(1, Math.ceil((Date.parse(endIso) - at) / 60000));
+  return min >= 60 ? `${Math.floor(min / 60)}시간` : `${min}분`;
+}

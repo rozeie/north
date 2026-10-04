@@ -10,8 +10,15 @@ import { TrackView } from "@/components/TrackView";
 
 export const dynamic = "force-dynamic";
 
-export default async function ReflectionPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function ReflectionPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ saved?: string }>;
+}) {
   const { id } = await params;
+  const { saved } = await searchParams;
   const user = await requireConfirmedUser();
   const item = await repo.getLibraryItem(user.id, id);
   const content = item && getContent(item.content_id);
@@ -45,15 +52,26 @@ export default async function ReflectionPage({ params }: { params: Promise<{ id:
 
       {reflection ? (
         <>
+          {saved === "1" && (
+            <p role="status" className="card-muted mb-6 text-body-sm font-semibold">
+              회고를 저장했어요. 다음 추천에 반영돼요.
+            </p>
+          )}
           <ReflectionView reflection={reflection} />
           <div className="mt-10">
             <Link href="/library" className="btn btn-outline">
               서재로
             </Link>
+            <Link href="/home" className="btn btn-ghost ml-3">
+              오늘의 추천 보기
+            </Link>
           </div>
         </>
       ) : (
-        <ReflectionFlow libraryItemId={item.id} />
+        <ReflectionFlow
+          libraryItemId={item.id}
+          meta={{ content_id: content.id, content_type: content.type, recommendation_reason: item.reason_snapshot, source: "reflection_page" }}
+        />
       )}
     </Shell>
   );

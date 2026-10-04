@@ -1,26 +1,26 @@
 import Link from "next/link";
 import type { Direction } from "@/lib/types";
 
-/** 홈 상단: 현재 성장 방향. 추천 카드보다 먼저 보이도록 한다. */
+/** 홈의 context 영역: 추천 기준이 되는 현재 성장 방향을 한 줄로 요약한다. 추천 패널보다 한 단계 낮게 보이도록 작게 둔다. */
 export function DirectionSummary({ direction }: { direction: Direction }) {
   const priority = direction.topics.find((t) => t.id === direction.priority_topic_id);
+  const others = direction.topics.filter((t) => t.id !== direction.priority_topic_id);
   return (
-    <section aria-label="현재 성장 방향" className="card mb-10">
-      <div className="flex items-center justify-between gap-4">
-        <p className="eyebrow">현재 성장 방향</p>
-        <Link href="/direction" className="btn btn-outline btn-sm">
-          수정
-        </Link>
-      </div>
-      <h1 className="mt-3 text-title font-semibold tracking-tight lg:text-title-lg">지금은 ‘{priority?.name}’부터</h1>
-      <p className="mt-2 text-body-sm text-muted-foreground">{direction.stuck_hypothesis}</p>
-      <ul className="mt-4 flex flex-wrap gap-2" aria-label="학습 주제">
-        {direction.topics.map((t) => (
-          <li key={t.id} className={`chip ${t.id === direction.priority_topic_id ? "is-selected font-semibold" : ""}`}>
-            {t.name}
-          </li>
-        ))}
-      </ul>
+    <section aria-label="현재 성장 방향" className="mb-5 flex flex-wrap items-center gap-x-3 gap-y-2 rounded-xl bg-secondary/60 px-4 py-2.5">
+      <p className="text-caption text-muted">현재 성장 방향</p>
+      <p className="text-body-sm font-semibold">{priority?.name}</p>
+      {others.length > 0 && (
+        <ul className="flex flex-wrap gap-1.5" aria-label="보조 키워드">
+          {others.map((t) => (
+            <li key={t.id} className="badge badge-outline bg-card font-medium text-muted">
+              {t.name}
+            </li>
+          ))}
+        </ul>
+      )}
+      <Link href="/direction" className="ml-auto text-caption font-medium text-muted hover:text-foreground hover:underline">
+        수정
+      </Link>
     </section>
   );
 }

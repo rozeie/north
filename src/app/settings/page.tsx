@@ -1,6 +1,6 @@
 import { requireConfirmedUser } from "@/lib/auth";
 import * as repo from "@/lib/repo";
-import { PageTitle, Shell } from "@/components/Shell";
+import { DirectionTabs, PageTitle, Shell } from "@/components/Shell";
 import { SettingsForm } from "@/components/SettingsForm";
 import { TrackView } from "@/components/TrackView";
 
@@ -11,9 +11,10 @@ export default async function SettingsPage() {
   const setting = await repo.getSetting(user.id);
 
   return (
-    <Shell active="settings">
+    <Shell active="direction">
       <TrackView step="settings" />
-      <PageTitle eyebrow="설정" title="설정" />
+      <PageTitle eyebrow="내 방향" title="설정" />
+      <DirectionTabs active="settings" />
       <SettingsForm initialTime={setting.recommendation_time} />
     </Shell>
   );
